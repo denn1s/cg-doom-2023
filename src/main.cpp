@@ -1,4 +1,5 @@
 #include <SDL2/SDL.h>
+#include <SDL_blendmode.h>
 #include <SDL_events.h>
 #include <SDL_render.h>
 #include <SDL_video.h>
@@ -20,7 +21,7 @@ void draw_floor() {
   // floor color
   SDL_SetRenderDrawColor(renderer, 112, 122, 122, 255);
   SDL_Rect rect = {
-    SCREEN_WIDTH, 
+    0, 
     SCREEN_HEIGHT / 2,
     SCREEN_WIDTH,
     SCREEN_HEIGHT / 2
@@ -28,13 +29,20 @@ void draw_floor() {
   SDL_RenderFillRect(renderer, &rect);
 }
 
+void draw_ui() {
+  /* int size = 256; */
+  /* ImageLoader::render(renderer, "p", SCREEN_WIDTH/2.0f - size/2.0f, SCREEN_HEIGHT - size, size); */
+  ImageLoader::render(renderer, "bg", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+}
+
 int main() {
   print("hello world");
 
   SDL_Init(SDL_INIT_VIDEO);
   ImageLoader::init();
+  SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 
-  window = SDL_CreateWindow("DOOM", 0, 0, SCREEN_WIDTH * 2, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+  window = SDL_CreateWindow("DOOM", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
   renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
   ImageLoader::loadImage("+", "assets/wall3.png");
@@ -42,6 +50,9 @@ int main() {
   ImageLoader::loadImage("|", "assets/wall2.png");
   ImageLoader::loadImage("*", "assets/wall4.png");
   ImageLoader::loadImage("g", "assets/wall5.png");
+  /* ImageLoader::loadImage("p", "assets/player.png"); */
+  ImageLoader::loadImage("bg", "assets/background.png");
+  ImageLoader::loadImage("e1", "assets/sprite1.png");
 
   Raycaster r = { renderer };
   r.load_map("assets/map.txt");
@@ -82,6 +93,7 @@ int main() {
 
     r.render();
 
+    draw_ui();
     // render
 
     SDL_RenderPresent(renderer);

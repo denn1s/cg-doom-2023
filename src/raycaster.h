@@ -36,6 +36,14 @@ struct Impact {
   int tx;
 };
 
+struct Enemy {
+  int x;
+  int y;
+  std::string texture;
+};
+
+std::vector<Enemy> enemies;
+
 class Raycaster {
 public:
   Raycaster(SDL_Renderer* renderer)
@@ -49,6 +57,8 @@ public:
 
     scale = 50;
     tsize = 128;
+
+    enemies = {Enemy{BLOCK * 5, BLOCK, "e1"}};
   }
 
   void load_map(const std::string& filename) {
@@ -74,6 +84,28 @@ public:
         Color c = ImageLoader::getPixelColor(mapHit, tx, ty);
         SDL_SetRenderDrawColor(renderer, c.r, c.g, c.b , 255);
         SDL_RenderDrawPoint(renderer, cx, cy);
+      }
+    }
+  }
+
+  void draw_enemy(Enemy enemy) {
+    float enemy_a = atan2(enemy.y - player.y, enemy.x - player.x);
+    float enemy_d = sqrt(pow(player.x - enemy.x, 2) + pow(player.y - enemy.y, 2)); 
+    int enemy_size = (SCREEN_HEIGHT/enemy_d) * scale;
+
+    int enemy_x = (enemy_a - player.a) * (SCREEN_WIDTH / player.fov) + SCREEN_WIDTH / 2.0f - enemy_size / 2.0f;
+    int enemy_y = (SCREEN_HEIGHT / 2.0f) - enemy_size / 2.0f;
+
+    for(int x = enemy_x; x < enemy_x + enemy_size; x++) {
+      for(int y = enemy_y; y < enemy_y + enemy_size; y++) {
+        int tx = (x - enemy_x) * tsize / enemy_size;
+        int ty = (y - enemy_y) * tsize / enemy_size;
+
+        Color c = ImageLoader::getPixelColor(enemy.texture, tx, ty);
+        if (c.r != 152 && c.g != 0 && c.b != 136) {
+          SDL_SetRenderDrawColor(renderer, c.r, c.g, c.b, c.a);
+          SDL_RenderDrawPoint(renderer, x, y);
+        }
       }
     }
   }
@@ -109,7 +141,7 @@ public:
         break;
       }
      
-      point(x, y, W);
+      /* point(x, y, W); */
       
       d += 1;
     }
@@ -132,7 +164,7 @@ public:
   void render() {
     
     // draw left side of the screen
-    
+   /* 
     for (int x = 0; x < SCREEN_WIDTH; x += BLOCK) {
       for (int y = 0; y < SCREEN_HEIGHT; y += BLOCK) {
         int i = static_cast<int>(x / BLOCK);
@@ -151,10 +183,10 @@ public:
       float a = player.a + player.fov / 2 - player.fov * i / SCREEN_WIDTH;
       cast_ray(a);
     }
-
+*/
     // draw right side of the screen
     
-    for (int i = 1; i < SCREEN_WIDTH; i++) {
+    for (int i = 0; i < SCREEN_WIDTH; i++) {
       double a = player.a + player.fov / 2.0 - player.fov * i / SCREEN_WIDTH;
       Impact impact = cast_ray(a);
       float d = impact.d;
@@ -164,9 +196,13 @@ public:
         print("you lose");
         exit(1);
       }
-      int x = SCREEN_WIDTH + i;
-      float h = static_cast<float>(SCREEN_HEIGHT)/static_cast<float>(d) * static_cast<float>(scale);
+      int x = i;
+      float h = static_cast<float>(SCREEN_HEIGHT)/static_cast<float>(d * cos(a - player.a)) * static_cast<float>(scale);
       draw_stake(x, h, impact);
+    }
+
+    for(Enemy enemy : enemies) {
+      draw_enemy(enemy);
     }
 
   }

@@ -1,6 +1,7 @@
 #pragma once
 #include <SDL.h>
 #include <SDL_image.h>
+#include <SDL_render.h>
 #include <stdexcept>
 #include <map>
 #include <string>
@@ -62,11 +63,11 @@ public:
         }
         
         SDL_Color color;
-        SDL_GetRGB(pixelColor, targetSurface->format, &color.r, &color.g, &color.b);
-        return Color{color.r, color.g, color.b};
+        SDL_GetRGBA(pixelColor, targetSurface->format, &color.r, &color.g, &color.b, &color.a);
+        return Color{color.r, color.g, color.b, color.a};
     }
 
-    static void render(SDL_Renderer* renderer, const std::string& key, int x, int y) {
+    static void render(SDL_Renderer* renderer, const std::string& key, int x, int y, int h = -1, int v = -1) {
         auto it = imageSurfaces.find(key);
         if (it == imageSurfaces.end()) {
             throw std::runtime_error("Image key not found!");
@@ -81,7 +82,12 @@ public:
         }
 
         // Set render destination and render the texture
-        SDL_Rect destRect = { x, y, targetSurface->w, targetSurface->h };
+        SDL_Rect destRect;
+        if (h == -1) {
+            destRect = { x, y, targetSurface->w, targetSurface->h };
+        } else {
+            destRect = { x, y, h, v };
+        }
         SDL_RenderCopy(renderer, texture, NULL, &destRect);
 
         // Free the created texture
